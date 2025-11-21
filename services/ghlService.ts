@@ -159,7 +159,14 @@ const findBestMatchingImage = (productName: string, mediaFiles: GHLMediaFile[]):
 
 const mapGHLProductToAppProduct = (ghlProduct: GHLProduct, mediaFiles: GHLMediaFile[] = []): Product => {
   const variant = ghlProduct.variants?.[0];
-  const price = variant?.price || 0;
+  let price = variant?.price;
+  
+  const category = inferCategory(ghlProduct.name, ghlProduct.description);
+
+  // Fix for $0.00 products: If price is missing or 0, generate a realistic mock price
+  if (!price || price === 0) {
+    price = generateRealisticPrice(category);
+  }
   
   let imageUrl = ghlProduct.medias?.[0]?.url || ghlProduct.image;
 
@@ -180,7 +187,7 @@ const mapGHLProductToAppProduct = (ghlProduct: GHLProduct, mediaFiles: GHLMediaF
     name: ghlProduct.name,
     description: ghlProduct.description || '',
     price: price,
-    category: inferCategory(ghlProduct.name, ghlProduct.description),
+    category: category,
     image: imageUrl,
     reviews: []
   };
